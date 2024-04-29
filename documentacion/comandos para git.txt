@@ -1,0 +1,17 @@
+git config --global user.name "dasdo"
+
+git config --global user.email dasdo1@gmail.com
+
+git init
+
+git clone https://github.com/EspaSandia24/VideoJuegos-Project.git
+
+luego editen este mismo documento poniendo su nombre
+
+git add .
+
+git commit -m "Subiendo mi nombre"
+
+git push -> para subir cosas 
+
+git pull -> para actualizar el repo en tu carpeta

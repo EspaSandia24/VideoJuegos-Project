@@ -1,17 +1,36 @@
 package mygame;
 
+import com.jme3.anim.AnimComposer;
+import com.jme3.anim.tween.Tween;
+import com.jme3.anim.tween.Tweens;
+import com.jme3.anim.tween.action.Action;
+import com.jme3.anim.tween.action.BlendSpace;
+import com.jme3.anim.tween.action.LinearBlendSpace;
 import com.jme3.app.SimpleApplication;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.Input;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
+import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.input.controls.Trigger;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
+import static java.awt.SystemColor.control;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
@@ -20,8 +39,13 @@ import com.jme3.system.AppSettings;
  */
 public class Main extends SimpleApplication {
 
-
-  public static void main(String[] args) {
+private Action advance;
+private AnimComposer control;
+Node player ;
+Node scene;
+private final static String MAPPING_ROTATE = "Rotate";
+private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
+   public static void main(String[] args) {
     AppSettings setting =new AppSettings(true);
     setting.setTitle("Defensores de la Cristalina");
     Main app = new Main();
@@ -29,21 +53,17 @@ public class Main extends SimpleApplication {
     app.start();
   }
    public Geometry cube=null;
-   //private InputManager inputManager;
+ 
 
   @Override
   public void simpleInitApp() {
+    inputManager.addMapping(MAPPING_ROTATE, TRIGGER_ROTATE);
+    inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
     
-    Node scene = new Node("MiEscenario");
+    scene = new Node("MiEscenario");
     rootNode.attachChild(scene);
     
-    Box cubeMesh = new Box(1, 1, 1); // Tamaño del cubo
-    cube = new Geometry("MiCubo", cubeMesh);
-    Material cubeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    cubeMaterial.setColor("Color", ColorRGBA.Blue); // Color del cubo
-    cube.setMaterial(cubeMaterial);
-    scene.attachChild(cube);
-    cube.setLocalTranslation(0, 0, 0); // Posición del cubo (x, y, z)
+  
     
     Box towerMesh = new Box(1, 3, 1); // Tamaño de la torre (ancho, alto, profundidad)
     Geometry tower = new Geometry("Torre", towerMesh);
@@ -51,41 +71,133 @@ public class Main extends SimpleApplication {
     towerMaterial.setColor("Color", ColorRGBA.Gray); // Color de la torre
     tower.setMaterial(towerMaterial);
     
-    tower.setLocalTranslation(5, 0, 0);// Posición de la torre (x, y, z)
+    Geometry tower2 = new Geometry("Torre", towerMesh);
+    tower2.setMaterial(towerMaterial);
     
-    ChaseCamera chaseCam = new ChaseCamera(cam, cube, inputManager);
-    chaseCam.setDefaultDistance(10); // Distancia de la cámara al personaje
-    chaseCam.setMaxDistance(20); // Distancia máxima de la cámara
-    chaseCam.setMinDistance(5); // Distancia mínima de la cámara
- // Mira hacia el origen desde arriba
+    Geometry tower3 = new Geometry("Torre", towerMesh);
+    tower3.setMaterial(towerMaterial);
+    
+    Geometry tower4 = new Geometry("Torre", towerMesh);
+    tower4.setMaterial(towerMaterial);
+    
+    
+    Node player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
+    player.setLocalScale(0.3f);
+    rootNode.attachChild(player);
+    player.rotate(0, FastMath.PI, 0);
+    
+    
+    DirectionalLight dl = new DirectionalLight();
+    dl.setDirection(new Vector3f(-0.5f, -1f, -1).normalizeLocal());
+    rootNode.addLight(dl);
+    
+    
+    cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y); // Mira hacia el jugador
+    
+    flyCam.setDragToRotate(true);
+    inputManager.setCursorVisible(true);
 
     scene.attachChild(tower);
-    
-    //inputManager = getInputManager();
+    scene.attachChild(tower2);    
+    scene.attachChild(tower3);
+    scene.attachChild(tower4);
+    scene.attachChild(player);
 
 
 
-  }
+
+    // Dentro de simpleInitApp()
+    player.setLocalTranslation(0, -1, 2); // Posición más cerca de la cámara (x, y, z)
+
+// ...
+
+    tower.setLocalTranslation(-5, 0, -20);
+    tower2.setLocalTranslation(5, 0, -20);
+    tower3.setLocalTranslation(-10, 0, -20);
+    tower4.setLocalTranslation(10, 0, -20);
+
+    control = player.getControl(AnimComposer.class);
+    control.setCurrentAction("stand");
+
+    BlendSpace quickBlend = new LinearBlendSpace(0f, 0.5f);
+    Action halt = control.actionBlended("halt", quickBlend, "stand", "Walk");
+    halt.setLength(0.5);
+
+    Action walk = control.action("Walk");
+    Tween doneTween = Tweens.callMethod(this, "onAdvanceDone");
+    advance = control.actionSequence("advance", walk, halt, doneTween);
+    }
+
+
 
     @Override
      public void simpleUpdate(float tpf) {
-        float speed = 0.1f * tpf; // Movement speed per frame
 
-        // Use Input.KEY_LEFT for correct key mapping in JME 3.6.1
-       /**
-        if (inputManager.isKeyDown(Input.KEY_LEFT)) {
-            cube.move(-speed, 0, 0); // Move left
-        } else if (inputManager.isKeyDown(Input.KEY_RIGHT)) {
-            cube.move(speed, 0, 0); // Move right
-        }
-        */
     }
-   
-
+  
 
 
     @Override
     public void simpleRender(RenderManager rm) {
-        //TODO: add render code
+      
     }
+    
+    void onAdvanceDone() {
+  
+    control.setCurrentAction("stand");
+  }
+
+  private void initKeys() {
+    inputManager.addMapping("Walk", new KeyTrigger(KeyInput.KEY_SPACE));
+    inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
+    inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
+
+    ActionListener handler = new ActionListener() {
+        @Override
+        public void onAction(String name, boolean keyPressed, float tpf) {
+            if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
+                control.setCurrentAction("advance");
+            } else if (name.equals("Left") && keyPressed) {
+                // Move left using translation
+                player.move(-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+            } else if (name.equals("Right") && keyPressed) {
+                // Move right using translation
+                player.move(speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+            }
+        }
+    };
+    inputManager.addListener(handler, "Left", "Right");
 }
+  
+  private final AnalogListener analogListener = new AnalogListener(){
+        @Override
+        public void onAnalog(String name, float intensity, float tpf){
+            // creamos una lista vacia de resultado para las colisiones
+            CollisionResults results = new CollisionResults();
+            // Al hacer uso del mouse, se requiere de la posicion 2D de éste
+            Vector2f click2d = inputManager.getCursorPosition();
+            // Convertimos el vector2D en uno 3D para definir el origen del ray, ya que 
+            // un ray requiere vector 3D
+            Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.getX(), click2d.getY()), 0f);
+            Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d.getX(), click2d.getY()), 1f).subtractLocal(click3d);
+            
+            Ray ray = new Ray(click3d, dir);
+            rootNode.collideWith(ray, results);
+            
+            if (name.equals(MAPPING_ROTATE)) {
+                if (results.size() > 0) {
+                    Geometry target = results.getClosestCollision().getGeometry();
+                    if (target.getName().equals("Torre")) {
+                       scene.detachChild(target);
+                    }
+                } else {
+                    System.out.println("Selection: Nothing" );
+                }
+            }
+        }   
+    };
+  
+  
+
+}
+

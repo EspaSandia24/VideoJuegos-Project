@@ -28,8 +28,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture;
 import static java.awt.SystemColor.control;
 
 /**
@@ -41,8 +43,10 @@ public class Main extends SimpleApplication {
 
 private Action advance;
 private AnimComposer control;
-Node player ;
+
 Node scene;
+Geometry tower;
+private proyectil ataque;
 private final static String MAPPING_ROTATE = "Rotate";
 private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
    public static void main(String[] args) {
@@ -57,6 +61,9 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
 
   @Override
   public void simpleInitApp() {
+      
+    viewPort.setBackgroundColor(ColorRGBA.White);
+    initKeys();
     inputManager.addMapping(MAPPING_ROTATE, TRIGGER_ROTATE);
     inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
     
@@ -68,7 +75,9 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     Box towerMesh = new Box(1, 3, 1); // Tamaño de la torre (ancho, alto, profundidad)
     Geometry tower = new Geometry("Torre", towerMesh);
     Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    towerMaterial.setColor("Color", ColorRGBA.Gray); // Color de la torre
+    
+    Texture texture = assetManager.loadTexture("Textures/torre.png"); // Ruta a tu imagen de textura
+    towerMaterial.setTexture("ColorMap", texture);// Color de la torre
     tower.setMaterial(towerMaterial);
     
     Geometry tower2 = new Geometry("Torre", towerMesh);
@@ -79,6 +88,8 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     
     Geometry tower4 = new Geometry("Torre", towerMesh);
     tower4.setMaterial(towerMaterial);
+    
+    
     
     
     Node player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
@@ -101,12 +112,11 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     scene.attachChild(tower2);    
     scene.attachChild(tower3);
     scene.attachChild(tower4);
-    scene.attachChild(player);
+    
+    scene.move(0, 0, 0); // No se mueve
+    
+    
 
-
-
-
-    // Dentro de simpleInitApp()
     player.setLocalTranslation(0, -1, 2); // Posición más cerca de la cámara (x, y, z)
 
 // ...
@@ -126,13 +136,14 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     Action walk = control.action("Walk");
     Tween doneTween = Tweens.callMethod(this, "onAdvanceDone");
     advance = control.actionSequence("advance", walk, halt, doneTween);
-    }
+    
+  }
 
 
 
     @Override
      public void simpleUpdate(float tpf) {
-
+      
     }
   
 
@@ -159,10 +170,10 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
                 control.setCurrentAction("advance");
             } else if (name.equals("Left") && keyPressed) {
                 // Move left using translation
-                player.move(-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+                 rootNode.move(2 *-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
             } else if (name.equals("Right") && keyPressed) {
                 // Move right using translation
-                player.move(speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+                rootNode.move(2 *speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
             }
         }
     };
@@ -196,8 +207,4 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
             }
         }   
     };
-  
-  
-
 }
-

@@ -15,3 +15,6 @@ git commit -m "Subiendo mi nombre"
 git push -> para subir cosas 
 
 git pull -> para actualizar el repo en tu carpeta
+
+
+Aquí Andy, que no había hecho el primer commit

@@ -43,6 +43,11 @@ public class Main extends SimpleApplication {
 
 private Action advance;
 private AnimComposer control;
+private Action advanceDerecha;
+private Action advanceIzquierda;
+Node player;
+
+
 
 Node scene;
 Geometry tower;
@@ -92,7 +97,7 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     
     
     
-    Node player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
+    player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
     player.setLocalScale(0.3f);
     rootNode.attachChild(player);
     player.rotate(0, FastMath.PI, 0);
@@ -133,9 +138,16 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     Action halt = control.actionBlended("halt", quickBlend, "stand", "Walk");
     halt.setLength(0.5);
 
-    Action walk = control.action("Walk");
+    Action walk = control.action("Walk");    
+    Action walkDerecha = control.action("Walk");
+    Action walkIzquierda = control.action("Walk");
+
+
     Tween doneTween = Tweens.callMethod(this, "onAdvanceDone");
     advance = control.actionSequence("advance", walk, halt, doneTween);
+    advanceDerecha = control.actionSequence("advancederecha", walkDerecha, halt, doneTween);
+    advanceIzquierda = control.actionSequence("advanceizquierda", walkIzquierda, halt, doneTween);
+
     
   }
 
@@ -168,12 +180,13 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
                 control.setCurrentAction("advance");
-            } else if (name.equals("Left") && keyPressed) {
+            } else if (name.equals("Left") && keyPressed ) {
                 // Move left using translation
-                 rootNode.move(2 *-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
-            } else if (name.equals("Right") && keyPressed) {
+                 
+                 player.move((-speed * tpf)*4, 0, 0);// Corrige aquí: mueve el jugador, no el rootNode
+            } else if (name.equals("Right") && keyPressed  &&  control.getCurrentAction() != advanceIzquierda) {
                 // Move right using translation
-                rootNode.move(2 *speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+               player.move((speed * tpf)*4, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
             }
         }
     };

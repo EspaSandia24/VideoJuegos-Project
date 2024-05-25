@@ -171,26 +171,32 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
   }
 
   private void initKeys() {
-    inputManager.addMapping("Walk", new KeyTrigger(KeyInput.KEY_SPACE));
-    inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
-    inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
+  inputManager.addMapping("Walk", new KeyTrigger(KeyInput.KEY_SPACE));
+  inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
+  inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
+  inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_UP)); // Add mapping for up arrow
+  inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_DOWN)); // Add mapping for down arrow
 
-    ActionListener handler = new ActionListener() {
-        @Override
-        public void onAction(String name, boolean keyPressed, float tpf) {
-            if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
-                control.setCurrentAction("advance");
-            } else if (name.equals("Left") && keyPressed) {
-                // Move left using translation
-                 player.move(2 *-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
-            } else if (name.equals("Right") && keyPressed) {
-                // Move right using translation
-                player.move(2 *speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
-            }
-        }
-    };
-    inputManager.addListener(handler, "Left", "Right");
+  ActionListener handler = new ActionListener() {
+    @Override
+    public void onAction(String name, boolean keyPressed, float tpf) {
+      if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
+        control.setCurrentAction("advance"); // Handle walking action (optional)
+      } else if (name.equals("Left") && keyPressed) {
+        player.move(-speed * tpf*4, 0, 0); // Move left using translation
+      } else if (name.equals("Right") && keyPressed) {
+        player.move(speed * tpf*4, 0, 0); // Move right using translation
+      } else if (name.equals("Up") && keyPressed) {
+        player.move(0, 0, -speed * tpf*4);
+      } else if (name.equals("Down") && keyPressed) {
+        player.move(0, 0, speed * tpf*4);
+      }
+    }
+  };
+
+  inputManager.addListener(handler, "Left", "Right", "Up", "Down"); // Add mappings to listener
 }
+
   
   private final AnalogListener analogListener = new AnalogListener(){
         @Override

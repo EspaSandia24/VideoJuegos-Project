@@ -180,13 +180,12 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
                 control.setCurrentAction("advance");
-            } else if (name.equals("Left") && keyPressed ) {
+            } else if (name.equals("Left") && keyPressed) {
                 // Move left using translation
-                 
-                 player.move((-speed * tpf)*4, 0, 0);// Corrige aquí: mueve el jugador, no el rootNode
-            } else if (name.equals("Right") && keyPressed  &&  control.getCurrentAction() != advanceIzquierda) {
+                 player.move(2 *-speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+            } else if (name.equals("Right") && keyPressed) {
                 // Move right using translation
-               player.move((speed * tpf)*4, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
+                player.move(2 *speed * tpf, 0, 0); // Corrige aquí: mueve el jugador, no el rootNode
             }
         }
     };

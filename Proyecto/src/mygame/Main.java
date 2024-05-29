@@ -46,6 +46,11 @@ private AnimComposer control;
 private Action advanceDerecha;
 private Action advanceIzquierda;
 Node player;
+private boolean upPressed = false;
+private boolean downPressed = false;
+private boolean leftPressed = false;
+private boolean rightPressed = false;
+
 
 
 
@@ -151,19 +156,27 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     
   }
 
-
-
     @Override
      public void simpleUpdate(float tpf) {
+        if (upPressed) {
+            player.move(0, 0, -speed * tpf * 4); // Mueve al jugador hacia arriba
+        }
+        if (leftPressed) {
+            player.move(-speed * tpf*4, 0, 0);
+        }
+        if (rightPressed) {
+            player.move(speed * tpf*4, 0, 0);
+        }
+        if (downPressed) {
+            player.move(0, 0, speed * tpf * 4); // Mueve al jugador hacia arriba
+        }
       
     }
   
 
 
     @Override
-    public void simpleRender(RenderManager rm) {
-      
-    }
+    public void simpleRender(RenderManager rm) {}
     
     void onAdvanceDone() {
   
@@ -180,17 +193,29 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
   ActionListener handler = new ActionListener() {
     @Override
     public void onAction(String name, boolean keyPressed, float tpf) {
-      if (name.equals("Walk") && keyPressed && control.getCurrentAction() != advance) {
-        control.setCurrentAction("advance"); // Handle walking action (optional)
-      } else if (name.equals("Left") && keyPressed) {
-        player.move(-speed * tpf*4, 0, 0); // Move left using translation
+      if (name.equals("Left") && keyPressed) {
+          leftPressed = keyPressed;
       } else if (name.equals("Right") && keyPressed) {
-        player.move(speed * tpf*4, 0, 0); // Move right using translation
-      } else if (name.equals("Up") && keyPressed) {
-        player.move(0, 0, -speed * tpf*4);
+          rightPressed = keyPressed;
+      } else if (name.equals("Up")) {
+           upPressed = keyPressed;
+        
       } else if (name.equals("Down") && keyPressed) {
-        player.move(0, 0, speed * tpf*4);
+          downPressed = keyPressed;
       }
+      
+    if (!keyPressed) {
+        if (name.equals("Left")) {
+        leftPressed = false;
+    } else if (name.equals("Right")) {
+        rightPressed = false;
+    } else if (name.equals("Up")) {
+        upPressed = false;
+    } else if (name.equals("Down")) {
+        downPressed = false;
+    }
+}
+
     }
   };
 

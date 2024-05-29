@@ -33,6 +33,8 @@ import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import static java.awt.SystemColor.control;
+import java.util.UUID;
+import static javax.swing.text.html.HTML.Attribute.N;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
@@ -182,10 +184,11 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
 
         // Cuando colisiona con la torre (o alcanza la posición deseada), detén el disparo
         float distanceToTarget = targetPosition.distance(projectilePosition);
-        if (distanceToTarget < 0.1f) {
+        if (distanceToTarget < 0.5f) {
             shoot = false;
             rootNode.detachChild(projectile);
             scene.detachChild(target);
+            projectile=null;
             
             // Elimina el cubo disparado
         }
@@ -258,29 +261,29 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
             Ray ray = new Ray(click3d, dir);
             rootNode.collideWith(ray, results);
             
-            if (name.equals(MAPPING_ROTATE)) {
-                if (results.size() > 0) {
-                     target = results.getClosestCollision().getGeometry();
-                   
-                        
-                        Vector3f targetPosition = results.getClosestCollision().getContactPoint();
-                       shootCube(targetPosition);
-                       
-                   
-                } else {
-                    System.out.println("Selection: Nothing" );
-                }
+            if (name.equals(MAPPING_ROTATE) && results.size() > 0) {
+                target = results.getClosestCollision().getGeometry();
+
+               if (projectile == null) {
+                shootCube(results.getClosestCollision().getContactPoint());
+               } else {
+                   shoot = true;
+            }
+            } else {
+                System.out.println("Selection: Nothing");
             }
         }   
     };
   
     private void shootCube(Vector3f targetPosition) {
     shoot = true; // Activa el disparo
-    projectile = new Geometry("CuboDisparado", new Box(0.2f, 0.2f, 0.2f));
+    String projectileId = "projectile_" + UUID.randomUUID().toString();
+    projectile = new Geometry(projectileId, new Box(0.2f, 0.2f, 0.2f));
     Material cubeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
     cubeMaterial.setColor("Color", ColorRGBA.Blue);
     projectile.setMaterial(cubeMaterial);
     rootNode.attachChild(projectile);
-    projectile.setLocalTranslation(player.getLocalTranslation()); // Inicialmente en la posición del jugador
+    projectile.setLocalTranslation(player.getLocalTranslation());
+    // Inicialmente en la posición del jugador
 }
 }

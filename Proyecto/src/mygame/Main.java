@@ -50,9 +50,10 @@ private boolean upPressed = false;
 private boolean downPressed = false;
 private boolean leftPressed = false;
 private boolean rightPressed = false;
-
-
-
+private boolean shoot = false; 
+private Geometry projectile;
+Geometry target;
+ CollisionResults results ;
 
 Node scene;
 Geometry tower;
@@ -83,7 +84,7 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
   
     
     Box towerMesh = new Box(1, 3, 1); // Tamaño de la torre (ancho, alto, profundidad)
-    Geometry tower = new Geometry("Torre", towerMesh);
+    tower = new Geometry("Torre", towerMesh);
     Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
     
     Texture texture = assetManager.loadTexture("Textures/torre.png"); // Ruta a tu imagen de textura
@@ -170,6 +171,25 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
         if (downPressed) {
             player.move(0, 0, speed * tpf * 4); // Mueve al jugador hacia arriba
         }
+        
+        if (shoot) {
+            
+        Vector3f targetPosition = results.getClosestCollision().getContactPoint(); // Posición de la torre
+        Vector3f projectilePosition = projectile.getLocalTranslation();
+        Vector3f direction = targetPosition.subtract(projectilePosition).normalizeLocal();
+        float speed = 20f; // Velocidad del disparo
+        projectile.move(direction.mult(speed * tpf));
+
+        // Cuando colisiona con la torre (o alcanza la posición deseada), detén el disparo
+        float distanceToTarget = targetPosition.distance(projectilePosition);
+        if (distanceToTarget < 0.1f) {
+            shoot = false;
+            rootNode.detachChild(projectile);
+            scene.detachChild(target);
+            
+            // Elimina el cubo disparado
+        }
+    }
       
     }
   
@@ -227,7 +247,7 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
         @Override
         public void onAnalog(String name, float intensity, float tpf){
             // creamos una lista vacia de resultado para las colisiones
-            CollisionResults results = new CollisionResults();
+            results = new CollisionResults();
             // Al hacer uso del mouse, se requiere de la posicion 2D de éste
             Vector2f click2d = inputManager.getCursorPosition();
             // Convertimos el vector2D en uno 3D para definir el origen del ray, ya que 
@@ -240,14 +260,27 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
             
             if (name.equals(MAPPING_ROTATE)) {
                 if (results.size() > 0) {
-                    Geometry target = results.getClosestCollision().getGeometry();
-                    if (target.getName().equals("Torre")) {
-                       scene.detachChild(target);
-                    }
+                     target = results.getClosestCollision().getGeometry();
+                   
+                        
+                        Vector3f targetPosition = results.getClosestCollision().getContactPoint();
+                       shootCube(targetPosition);
+                       
+                   
                 } else {
                     System.out.println("Selection: Nothing" );
                 }
             }
         }   
     };
+  
+    private void shootCube(Vector3f targetPosition) {
+    shoot = true; // Activa el disparo
+    projectile = new Geometry("CuboDisparado", new Box(0.2f, 0.2f, 0.2f));
+    Material cubeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    cubeMaterial.setColor("Color", ColorRGBA.Blue);
+    projectile.setMaterial(cubeMaterial);
+    rootNode.attachChild(projectile);
+    projectile.setLocalTranslation(player.getLocalTranslation()); // Inicialmente en la posición del jugador
+}
 }

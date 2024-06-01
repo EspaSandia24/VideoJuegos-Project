@@ -8,9 +8,6 @@ import com.jme3.anim.tween.action.BlendSpace;
 import com.jme3.anim.tween.action.LinearBlendSpace;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.ChaseCamera;
-import com.jme3.input.Input;
-import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -28,13 +25,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
-import static java.awt.SystemColor.control;
 import java.util.UUID;
-import static javax.swing.text.html.HTML.Attribute.N;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
@@ -65,7 +59,11 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
    public static void main(String[] args) {
     AppSettings setting =new AppSettings(true);
     setting.setTitle("Defensores de la Cristalina");
+    setting.setWidth(1280); // Ancho deseado
+    setting.setHeight(720); // Alto deseado
+
     Main app = new Main();
+    
     app.setSettings(setting);
     app.start();
   }
@@ -82,7 +80,8 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     
     scene = new Node("MiEscenario");
     rootNode.attachChild(scene);
-    
+   // Escala global (2 veces más grande)
+
   
     
     Box towerMesh = new Box(1, 3, 1); // Tamaño de la torre (ancho, alto, profundidad)

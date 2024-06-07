@@ -4,6 +4,7 @@ package mygame;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
+import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -25,6 +26,7 @@ import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 
 import java.util.ArrayList;
@@ -51,6 +53,10 @@ Node scene;
 
 
     public static void main(String[] args) {
+        AppSettings setting =new AppSettings(true);
+        setting.setTitle("Defensores de la Cristalina");
+        setting.setWidth(1280); // Ancho deseado
+        setting.setHeight(720);
         Main app = new Main();
         app.start();
     }
@@ -73,6 +79,15 @@ Node scene;
         rootNode.addLight(dl);
 
         cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y);
+        ChaseCamera chaseCam = new ChaseCamera(cam, player, inputManager);
+        chaseCam.setDefaultDistance(10); // Distancia de la cámara al personaje
+        chaseCam.setMaxDistance(10); // Distancia máxima de la cámara
+        chaseCam.setMinDistance(2);
+        chaseCam.setDefaultVerticalRotation(0.2f);
+        chaseCam.setDefaultHorizontalRotation(FastMath.PI / 2);
+
+        // Actualiza la posición de la cámara según la posición del jugador
+        chaseCam.setSpatial(player);
 
         flyCam.setDragToRotate(true);
         inputManager.setCursorVisible(true);

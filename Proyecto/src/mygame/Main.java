@@ -23,6 +23,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 
@@ -78,31 +79,56 @@ Node scene;
 
 
         // Crear torres
-        createTower(new Vector3f(-5, 0, -20));
-        createTower(new Vector3f(5, 0, -20));
-        createTower(new Vector3f(-10, 0, -20));
-        createTower(new Vector3f(10, 0, -20));
+        createTower(new Vector3f(-5, -1.5f, -20));
+        createTower(new Vector3f(5, -1.5f, -20));
+        createTower(new Vector3f(-15, -1.5f, -20));
+        createTower(new Vector3f(15, -1.5f, -20));
+        
+        // Crear y agregar el suelo
+        createFloor();
 
         playerControl = new PlayerControl(player, this);
     }
 
     private void createTower(Vector3f position) {
-        Box towerMesh = new Box(1, 3, 1);
-        Geometry tower = new Geometry("Tower", towerMesh);
-        Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        Texture texture = assetManager.loadTexture("Textures/torre.png"); // Ruta a tu imagen de textura
-        towerMaterial.setTexture("ColorMap", texture);// Color de la torre
+        // Carga el modelo de la torre y ajusta su escala
+        Node towerModel = (Node) assetManager.loadModel("Models/model_torre.glb");
+        float towerScale = 0.20f; // Factor de escala para ajustar el tamaño de las torres
+        towerModel.setLocalTranslation(position);
+        towerModel.setLocalScale(towerScale); // Ajusta la escala según sea necesario
 
-        
-//towerMaterial.setColor("Color", ColorRGBA.Gray);
-        tower.setMaterial(towerMaterial);
-        tower.setLocalTranslation(position);
-        rootNode.attachChild(tower);
-    scene.attachChild(tower);
+        // Adjunta la torre al nodo de la escena
+        scene.attachChild(towerModel);
 
-        stateManager.attach(new TowerControl(tower, player, this));
+        stateManager.attach(new TowerControl(towerModel, player, this)); //towerMode antes era 'tower'
     }
     
+    //funcion para la creacion del suelo
+    private void createFloor() {
+        // Crear el mesh para el suelo
+        Quad floorMesh = new Quad(100, 100); // Tamaño del suelo (ancho, alto)
+
+        // Crear la geometría para el suelo
+        Geometry floor = new Geometry("Floor", floorMesh);
+
+        // Crear el material para el suelo       
+        Material floorMaterial = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        // Cargar la textura de pasto
+        Texture grassTexture = assetManager.loadTexture("Textures/pasto.jpg");
+        floorMaterial.setTexture("DiffuseMap", grassTexture);
+
+        // Asignar el material a la geometría del suelo
+        floor.setMaterial(floorMaterial);
+
+        // Rotar el suelo para que esté en el plano XZ (horizontal)
+        floor.rotate(-FastMath.HALF_PI, 0, 0);
+
+        // Posicionar el suelo en la escena
+        floor.setLocalTranslation(-50, -1.45f, 50); // Ajusta la posición del suelo
+
+        // Añadir el suelo al nodo raíz
+        rootNode.attachChild(floor); // Añade el suelo a la escena
+    }
 
     public Geometry createProjectile(Vector3f position, ColorRGBA Red) {
         Sphere sphere = new Sphere(16, 16, 0.2f);

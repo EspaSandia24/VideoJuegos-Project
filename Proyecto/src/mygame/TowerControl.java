@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class TowerControl extends AbstractAppState {
 
-    private Geometry tower;
+    private Node tower;
     private Node player;
     private Main app;
     private float shootingInterval = 3.0f;
@@ -27,7 +27,7 @@ public class TowerControl extends AbstractAppState {
         this.app = app;
     this.towerID = UUID.randomUUID().toString(); // Asigna un ID único a cada torre
     }*/
-    public TowerControl(Geometry tower, Node player, Main app) {
+    public TowerControl(Node tower, Node player, Main app) {
     this.tower = tower;
     this.player = player;
     this.app = app;
@@ -91,7 +91,7 @@ private void shootAtPlayer() {
         }
     }
 
-    public Geometry getTower() {
+    public Node getTower() {
         return tower;
     }
 

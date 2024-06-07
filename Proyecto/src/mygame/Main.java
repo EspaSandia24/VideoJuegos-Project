@@ -50,6 +50,7 @@ public class Main extends SimpleApplication {
     CollisionResults results ;
     private boolean shoot = false; 
     Node scene;
+    int torres=4;
 
 
     public static void main(String[] args) {
@@ -94,10 +95,10 @@ public class Main extends SimpleApplication {
 
 
         // Crear torres
-        createTower(new Vector3f(-5, -1.5f, -20));
-        createTower(new Vector3f(5, -1.5f, -20));
-        createTower(new Vector3f(-15, -1.5f, -20));
-        createTower(new Vector3f(15, -1.5f, -20));
+        createTower(new Vector3f(-5, 0, -20));
+        createTower(new Vector3f(5, 0, -20));
+        createTower(new Vector3f(-15, 0, -20));
+        createTower(new Vector3f(15, 0, -20));
         
         // Crear y agregar el suelo
         createFloor();
@@ -109,15 +110,20 @@ public class Main extends SimpleApplication {
 
     private void createTower(Vector3f position) {
         // Carga el modelo de la torre y ajusta su escala
-        Node towerModel = (Node) assetManager.loadModel("Models/model_torre.glb");
-        float towerScale = 0.20f; // Factor de escala para ajustar el tamaño de las torres
-        towerModel.setLocalTranslation(position);
-        towerModel.setLocalScale(towerScale); // Ajusta la escala según sea necesario
+        Box towerMesh = new Box(2, 5, 1);
+        Geometry tower = new Geometry("Tower", towerMesh);
+         // Factor de escala para ajustar el tamaño de las torres
+        Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture texture = assetManager.loadTexture("Textures/torre1.png"); // Ruta a tu imagen de textura
+        towerMaterial.setTexture("ColorMap", texture);// Color de la torre// Color de la torre // Ajusta la escala según sea necesario
 
         // Adjunta la torre al nodo de la escena
-        scene.attachChild(towerModel);
+         tower.setMaterial(towerMaterial);
+        tower.setLocalTranslation(position);
+        rootNode.attachChild(tower);
+        scene.attachChild(tower);
 
-        stateManager.attach(new TowerControl(towerModel, player, this)); //towerMode antes era 'tower'
+        stateManager.attach(new TowerControl(tower, player, this)); //towerMode antes era 'tower'
     }
     
     //funcion para la creacion del suelo
@@ -246,6 +252,7 @@ public class Main extends SimpleApplication {
                     shoot = false;
                     rootNode.detachChild(projectile);
                     scene.detachChild(target);
+                    
 
                 }
             }

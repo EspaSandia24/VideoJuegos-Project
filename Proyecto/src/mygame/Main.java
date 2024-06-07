@@ -45,11 +45,11 @@ public class Main extends SimpleApplication {
     private boolean rightPressed = false;
     private final static String MAPPING_ROTATE = "Rotate";
     private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
-   private Geometry projectile;
-Geometry target;
-CollisionResults results ;
-private boolean shoot = false; 
-Node scene;
+    private Geometry projectile;
+    Geometry target;
+    CollisionResults results ;
+    private boolean shoot = false; 
+    Node scene;
 
 
     public static void main(String[] args) {
@@ -101,6 +101,8 @@ Node scene;
         
         // Crear y agregar el suelo
         createFloor();
+        //Crear y agregar cielo
+        createSky();
 
         playerControl = new PlayerControl(player, this);
     }
@@ -165,16 +167,16 @@ Node scene;
     }
 
     public void removeProjectilesByTower(String towerID) {
-    List<ProjectileControl> toRemove = new ArrayList<>();
-    for (ProjectileControl proj : projectiles) {
-        String projTowerID = proj.getProjectile().getUserData("targetTowerID");
-        if (towerID.equals(projTowerID)) {
-            rootNode.detachChild(proj.getProjectile());
-            toRemove.add(proj);
+        List<ProjectileControl> toRemove = new ArrayList<>();
+        for (ProjectileControl proj : projectiles) {
+            String projTowerID = proj.getProjectile().getUserData("targetTowerID");
+            if (towerID.equals(projTowerID)) {
+                rootNode.detachChild(proj.getProjectile());
+                toRemove.add(proj);
+            }
         }
+        projectiles.removeAll(toRemove);
     }
-    projectiles.removeAll(toRemove);
-}
 
     
     public List<Geometry> getProjectiles() {
@@ -224,29 +226,29 @@ Node scene;
         
         if (shoot) {
             
-        Vector3f targetPosition = results.getClosestCollision().getContactPoint(); // Posición de la torre
-        Vector3f projectilePosition = projectile.getLocalTranslation();
-        Vector3f direction = targetPosition.subtract(projectilePosition).normalizeLocal();
-        float speed = 20f; // Velocidad del disparo
-        projectile.move(direction.mult(speed * tpf));
+            Vector3f targetPosition = results.getClosestCollision().getContactPoint(); // Posición de la torre
+            Vector3f projectilePosition = projectile.getLocalTranslation();
+            Vector3f direction = targetPosition.subtract(projectilePosition).normalizeLocal();
+            float speed = 20f; // Velocidad del disparo
+            projectile.move(direction.mult(speed * tpf));
 
-        // Cuando colisiona con la torre (o alcanza la posición deseada), detén el disparo
-        float distanceToTarget = targetPosition.distance(projectilePosition);
-        if (distanceToTarget < 0.5f) {
-            shoot = false;
-            rootNode.detachChild(projectile);
-            scene.detachChild(target);
-            ///
-            projectile=null;
-            
-            // Elimina el cubo disparado
-            if (results.getClosestCollision().getGeometry().getUserData("towerID") != null) {
-        shoot = false;
-        rootNode.detachChild(projectile);
-        scene.detachChild(target);
+            // Cuando colisiona con la torre (o alcanza la posición deseada), detén el disparo
+            float distanceToTarget = targetPosition.distance(projectilePosition);
+            if (distanceToTarget < 0.5f) {
+                shoot = false;
+                rootNode.detachChild(projectile);
+                scene.detachChild(target);
+                ///
+                projectile=null;
+                
+                // Elimina el cubo disparado
+                if (results.getClosestCollision().getGeometry().getUserData("towerID") != null) {
+                    shoot = false;
+                    rootNode.detachChild(projectile);
+                    scene.detachChild(target);
 
+                }
             }
-        }
         }
     }
 
@@ -293,36 +295,36 @@ public void simpleUpdate(float tpf) {
         
         
         ActionListener handler = new ActionListener() {
-    @Override
-    public void onAction(String name, boolean keyPressed, float tpf) {
-      if (name.equals("Left") && keyPressed) {
-          leftPressed = keyPressed;
-      } else if (name.equals("Right") && keyPressed) {
-          rightPressed = keyPressed;
-      } else if (name.equals("Up")) {
-           upPressed = keyPressed;
-        
-      } else if (name.equals("Down") && keyPressed) {
-          downPressed = keyPressed;
-      }
-      
-    if (!keyPressed) {
-        if (name.equals("Left")) {
-        leftPressed = false;
-    } else if (name.equals("Right")) {
-        rightPressed = false;
-    } else if (name.equals("Up")) {
-        upPressed = false;
-    } else if (name.equals("Down")) {
-        downPressed = false;
-    }
-}
+            @Override
+            public void onAction(String name, boolean keyPressed, float tpf) {
+            if (name.equals("Left") && keyPressed) {
+                leftPressed = keyPressed;
+            } else if (name.equals("Right") && keyPressed) {
+                rightPressed = keyPressed;
+            } else if (name.equals("Up")) {
+                upPressed = keyPressed;
+                
+            } else if (name.equals("Down") && keyPressed) {
+                downPressed = keyPressed;
+            }
+            
+                if (!keyPressed) {
+                    if (name.equals("Left")) {
+                    leftPressed = false;
+                    } else if (name.equals("Right")) {
+                        rightPressed = false;
+                    } else if (name.equals("Up")) {
+                        upPressed = false;
+                    } else if (name.equals("Down")) {
+                        downPressed = false;
+                    }
+                }
 
-    }
-  };
+            }
+        };
 
-  inputManager.addListener(handler, "Left", "Right", "Up", "Down"); // Add mappings to listener
-}
+        inputManager.addListener(handler, "Left", "Right", "Up", "Down"); // Add mappings to listener
+    }
     
     private final AnalogListener analogListener = new AnalogListener(){
         @Override
@@ -354,16 +356,27 @@ public void simpleUpdate(float tpf) {
     };
   
     private void shootCube(Vector3f targetPosition) {
-    shoot = true; // Activa el disparo
-    String projectileId = "projectile_" + UUID.randomUUID().toString();
-    projectile = new Geometry(projectileId, new Box(0.2f, 0.2f, 0.2f));
-    Material cubeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    cubeMaterial.setColor("Color", ColorRGBA.Blue);
-    projectile.setMaterial(cubeMaterial);
-    rootNode.attachChild(projectile);
-    projectile.setLocalTranslation(player.getLocalTranslation());
-    // Inicialmente en la posición del jugador
-}
-    
+        shoot = true; // Activa el disparo
+        String projectileId = "projectile_" + UUID.randomUUID().toString();
+        projectile = new Geometry(projectileId, new Box(0.2f, 0.2f, 0.2f));
+        Material cubeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        cubeMaterial.setColor("Color", ColorRGBA.Blue);
+        projectile.setMaterial(cubeMaterial);
+        rootNode.attachChild(projectile);
+        projectile.setLocalTranslation(player.getLocalTranslation());
+        // Inicialmente en la posición del jugador
+    }
+    //funcion para crear el cielo
+    private void createSky(){
+        ColorRGBA topColor = new ColorRGBA(0.3f, 0.5f, 0.8f, 1f); // Color azul menos claro
+        ColorRGBA bottomColor = new ColorRGBA(0.6f, 0.7f, 1f, 1f); // Color azul claro
+
+        // Calcula el color intermedio utilizando el método interpolateLocal
+        ColorRGBA gradientColor = topColor.interpolateLocal(bottomColor, 0f);
+
+        // Configura el color de fondo de la vista con el color intermedio
+        viewPort.setBackgroundColor(gradientColor);
+
+    }
 }
 

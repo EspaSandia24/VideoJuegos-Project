@@ -1,13 +1,9 @@
+
 package mygame;
 
-import com.jme3.anim.AnimComposer;
-import com.jme3.anim.tween.Tween;
-import com.jme3.anim.tween.Tweens;
-import com.jme3.anim.tween.action.Action;
-import com.jme3.anim.tween.action.BlendSpace;
-import com.jme3.anim.tween.action.LinearBlendSpace;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
+import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -25,141 +21,153 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
-import com.jme3.system.AppSettings;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
-import java.util.UUID;
 
-/**
- * This is the Main Class of your Game. You should only do initialization here.
- * Move your Logic into AppStates or Controls
- * @author normenhansen
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+//import java.util.UUID;
+
 public class Main extends SimpleApplication {
 
-private Action advance;
-private AnimComposer control;
-private Action advanceDerecha;
-private Action advanceIzquierda;
-Node player;
-private boolean upPressed = false;
-private boolean downPressed = false;
-private boolean leftPressed = false;
-private boolean rightPressed = false;
-private boolean shoot = false; 
-private Geometry projectile;
+    private Node player;
+    private List<ProjectileControl> projectiles = new ArrayList<>();
+    private PlayerControl playerControl;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
+    private boolean leftPressed = false;
+    private boolean rightPressed = false;
+    private final static String MAPPING_ROTATE = "Rotate";
+    private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
+   private Geometry projectile;
 Geometry target;
- CollisionResults results ;
-
+CollisionResults results ;
+private boolean shoot = false; 
 Node scene;
-Geometry tower;
-private proyectil ataque;
-private final static String MAPPING_ROTATE = "Rotate";
-private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
-   public static void main(String[] args) {
-    AppSettings setting =new AppSettings(true);
-    setting.setTitle("Defensores de la Cristalina");
-    setting.setWidth(1280); // Ancho deseado
-    setting.setHeight(720); // Alto deseado
-
-    Main app = new Main();
-    
-    app.setSettings(setting);
-    app.start();
-  }
-   public Geometry cube=null;
- 
-
-  @Override
-  public void simpleInitApp() {
-      
-    viewPort.setBackgroundColor(ColorRGBA.White);
-    initKeys();
-    inputManager.addMapping(MAPPING_ROTATE, TRIGGER_ROTATE);
-    inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
-    
-    scene = new Node("MiEscenario");
-    rootNode.attachChild(scene);
-   // Escala global (2 veces más grande)
-
-  
-    
-    Box towerMesh = new Box(1, 3, 1); // Tamaño de la torre (ancho, alto, profundidad)
-    tower = new Geometry("Torre", towerMesh);
-    Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    
-    Texture texture = assetManager.loadTexture("Textures/torre.png"); // Ruta a tu imagen de textura
-    towerMaterial.setTexture("ColorMap", texture);// Color de la torre
-    tower.setMaterial(towerMaterial);
-    
-    Geometry tower2 = new Geometry("Torre", towerMesh);
-    tower2.setMaterial(towerMaterial);
-    
-    Geometry tower3 = new Geometry("Torre", towerMesh);
-    tower3.setMaterial(towerMaterial);
-    
-    Geometry tower4 = new Geometry("Torre", towerMesh);
-    tower4.setMaterial(towerMaterial);
-    
-    
-    
-    
-    player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
-    player.setLocalScale(0.3f);
-    rootNode.attachChild(player);
-    player.rotate(0, FastMath.PI, 0);
-    
-    
-    DirectionalLight dl = new DirectionalLight();
-    dl.setDirection(new Vector3f(-0.5f, -1f, -1).normalizeLocal());
-    rootNode.addLight(dl);
-    
-    
-    cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y); // Mira hacia el jugador
-    
-    flyCam.setDragToRotate(true);
-    inputManager.setCursorVisible(true);
-
-    scene.attachChild(tower);
-    scene.attachChild(tower2);    
-    scene.attachChild(tower3);
-    scene.attachChild(tower4);
-    
-    scene.move(0, 0, 0); // No se mueve
-    
-    
-
-    player.setLocalTranslation(0, -1, 2); // Posición más cerca de la cámara (x, y, z)
-
-// ...
-
-    tower.setLocalTranslation(-5, 0, -20);
-    tower2.setLocalTranslation(5, 0, -20);
-    tower3.setLocalTranslation(-10, 0, -20);
-    tower4.setLocalTranslation(10, 0, -20);
-
-    control = player.getControl(AnimComposer.class);
-    control.setCurrentAction("stand");
-
-    BlendSpace quickBlend = new LinearBlendSpace(0f, 0.5f);
-    Action halt = control.actionBlended("halt", quickBlend, "stand", "Walk");
-    halt.setLength(0.5);
-
-    Action walk = control.action("Walk");    
-    Action walkDerecha = control.action("Walk");
-    Action walkIzquierda = control.action("Walk");
 
 
-    Tween doneTween = Tweens.callMethod(this, "onAdvanceDone");
-    advance = control.actionSequence("advance", walk, halt, doneTween);
-    advanceDerecha = control.actionSequence("advancederecha", walkDerecha, halt, doneTween);
-    advanceIzquierda = control.actionSequence("advanceizquierda", walkIzquierda, halt, doneTween);
-
-    
-  }
+    public static void main(String[] args) {
+        Main app = new Main();
+        app.start();
+    }
 
     @Override
-     public void simpleUpdate(float tpf) {
+    public void simpleInitApp() {
+        viewPort.setBackgroundColor(ColorRGBA.White);
+        initKeys();
+        inputManager.addMapping(MAPPING_ROTATE, TRIGGER_ROTATE);
+        inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
+        scene = new Node("MiEscenario");
+        rootNode.attachChild(scene);
+        player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
+        player.setLocalScale(0.3f);
+        rootNode.attachChild(player);
+        player.rotate(0, FastMath.PI, 0);
+
+        DirectionalLight dl = new DirectionalLight();
+        dl.setDirection(new Vector3f(-0.5f, -1f, -1).normalizeLocal());
+        rootNode.addLight(dl);
+
+        cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y);
+
+        flyCam.setDragToRotate(true);
+        inputManager.setCursorVisible(true);
+
+
+        // Crear torres
+        createTower(new Vector3f(-5, 0, -20));
+        createTower(new Vector3f(5, 0, -20));
+        createTower(new Vector3f(-10, 0, -20));
+        createTower(new Vector3f(10, 0, -20));
+
+        playerControl = new PlayerControl(player, this);
+    }
+
+    private void createTower(Vector3f position) {
+        Box towerMesh = new Box(1, 3, 1);
+        Geometry tower = new Geometry("Tower", towerMesh);
+        Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture texture = assetManager.loadTexture("Textures/torre.png"); // Ruta a tu imagen de textura
+        towerMaterial.setTexture("ColorMap", texture);// Color de la torre
+
+        
+//towerMaterial.setColor("Color", ColorRGBA.Gray);
+        tower.setMaterial(towerMaterial);
+        tower.setLocalTranslation(position);
+        rootNode.attachChild(tower);
+    scene.attachChild(tower);
+
+        stateManager.attach(new TowerControl(tower, player, this));
+    }
+    
+
+    public Geometry createProjectile(Vector3f position, ColorRGBA Red) {
+        Sphere sphere = new Sphere(16, 16, 0.2f);
+        Geometry projectile = new Geometry("Projectile", sphere);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Red);
+        projectile.setMaterial(mat);
+        projectile.setLocalTranslation(position);
+        rootNode.attachChild(projectile);
+        return projectile;
+    }
+    public void addProjectile(Geometry projectile, Vector3f direction) {
+        projectiles.add(new ProjectileControl(projectile, direction));
+    }
+
+    public void removeProjectile(Geometry projectile) {
+        rootNode.detachChild(projectile);
+        projectiles.removeIf(proj -> proj.getProjectile().equals(projectile));
+    }
+
+    public void removeProjectilesByTower(String towerID) {
+    List<ProjectileControl> toRemove = new ArrayList<>();
+    for (ProjectileControl proj : projectiles) {
+        String projTowerID = proj.getProjectile().getUserData("targetTowerID");
+        if (towerID.equals(projTowerID)) {
+            rootNode.detachChild(proj.getProjectile());
+            toRemove.add(proj);
+        }
+    }
+    projectiles.removeAll(toRemove);
+}
+
+    
+    public List<Geometry> getProjectiles() {
+        List<Geometry> geometries = new ArrayList<>();
+        for (ProjectileControl proj : projectiles) {
+            geometries.add(proj.getProjectile());
+            ////
+        }
+        return geometries;
+    }
+
+    public boolean isUpPressed() {
+        return upPressed;
+    }
+
+    public boolean isDownPressed() {
+        return downPressed;
+    }
+
+    public boolean isLeftPressed() {
+        return leftPressed;
+    }
+
+    public boolean isRightPressed() {
+        return rightPressed;
+    }
+
+    @Override
+    public void simpleUpdate(float tpf) {
+        for (ProjectileControl proj : projectiles) {
+            proj.update(tpf);
+        }
+        playerControl.update(tpf);
+        
         if (upPressed) {
             player.move(0, 0, -speed * tpf * 4); // Mueve al jugador hacia arriba
         }
@@ -187,32 +195,63 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
             shoot = false;
             rootNode.detachChild(projectile);
             scene.detachChild(target);
+            ///
             projectile=null;
             
             // Elimina el cubo disparado
+            if (results.getClosestCollision().getGeometry().getUserData("towerID") != null) {
+        shoot = false;
+        rootNode.detachChild(projectile);
+        scene.detachChild(target);
+
+            }
+        }
         }
     }
-      
-    }
-  
 
+   /* @Override
+public void simpleUpdate(float tpf) {
+  for (ProjectileControl proj : projectiles) {
+    proj.update(tpf);
+  }
+  playerControl.update(tpf);
+
+  if (upPressed) {
+    player.move(0, 0, -speed * tpf * 4); // Move the player upwards
+  }
+  // ... (rest of the movement code)
+
+  if (shoot) {
+    Vector3f targetPosition = results.getClosestCollision().getContactPoint(); // Position of the tower
+    Vector3f projectilePosition = projectile.getLocalTranslation();
+    Vector3f direction = targetPosition.subtract(projectilePosition).normalizeLocal();
+    float speed = 20f; // Projectile speed
+
+    projectile.move(direction.mult(speed * tpf));
+
+    float distanceToTarget = targetPosition.distance(projectilePosition);
+    if (distanceToTarget < 0.5f) {
+      // Check if the target is a tower
+      if (results.getClosestCollision().getGeometry().getUserData("towerID") != null) {
+        shoot = false;
+        rootNode.detachChild(projectile);
+        scene.detachChild(target);
+      }
+    }
+  }
+}*/
 
     @Override
     public void simpleRender(RenderManager rm) {}
-    
-    void onAdvanceDone() {
-  
-    control.setCurrentAction("stand");
-  }
 
-  private void initKeys() {
-  inputManager.addMapping("Walk", new KeyTrigger(KeyInput.KEY_SPACE));
-  inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
-  inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
-  inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_UP)); // Add mapping for up arrow
-  inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_DOWN)); // Add mapping for down arrow
-
-  ActionListener handler = new ActionListener() {
+    private void initKeys() {
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
+        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_UP));
+        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_DOWN));
+        
+        
+        ActionListener handler = new ActionListener() {
     @Override
     public void onAction(String name, boolean keyPressed, float tpf) {
       if (name.equals("Left") && keyPressed) {
@@ -243,9 +282,8 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
 
   inputManager.addListener(handler, "Left", "Right", "Up", "Down"); // Add mappings to listener
 }
-
-  
-  private final AnalogListener analogListener = new AnalogListener(){
+    
+    private final AnalogListener analogListener = new AnalogListener(){
         @Override
         public void onAnalog(String name, float intensity, float tpf){
             // creamos una lista vacia de resultado para las colisiones
@@ -285,4 +323,6 @@ private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.
     projectile.setLocalTranslation(player.getLocalTranslation());
     // Inicialmente en la posición del jugador
 }
+    
 }
+

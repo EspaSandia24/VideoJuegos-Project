@@ -14,12 +14,14 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.Control;
@@ -70,14 +72,18 @@ public class Main extends SimpleApplication {
         inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
         scene = new Node("MiEscenario");
         rootNode.attachChild(scene);
-        player = (Node) assetManager.loadModel("Models/Oto.mesh.xml");
-        player.setLocalScale(0.3f);
+        player = (Node) assetManager.loadModel("Models/Tenebria.glb");
+        player.setLocalScale(2f);
         rootNode.attachChild(player);
         player.rotate(0, FastMath.PI, 0);
 
-        DirectionalLight dl = new DirectionalLight();
-        dl.setDirection(new Vector3f(-0.5f, -1f, -1).normalizeLocal());
-        rootNode.addLight(dl);
+        DirectionalLight dl1 = new DirectionalLight();
+        dl1.setDirection(new Vector3f(-0.5f, -1f, -1).normalizeLocal());
+        rootNode.addLight(dl1);
+        
+        DirectionalLight dl2 = new DirectionalLight();
+        dl2.setDirection(new Vector3f(0.5f, -1f, 1).normalizeLocal());
+        rootNode.addLight(dl2);
 
         cam.lookAt(player.getLocalTranslation(), Vector3f.UNIT_Y);
         ChaseCamera chaseCam = new ChaseCamera(cam, player, inputManager);
@@ -95,10 +101,10 @@ public class Main extends SimpleApplication {
 
 
         // Crear torres
-        createTower(new Vector3f(-5, 0, -20));
-        createTower(new Vector3f(5, 0, -20));
-        createTower(new Vector3f(-15, 0, -20));
-        createTower(new Vector3f(15, 0, -20));
+        createTower(new Vector3f(-5, 4, -20));
+        createTower(new Vector3f(5,4, -20));
+        createTower(new Vector3f(-15, 4, -20));
+        createTower(new Vector3f(15, 4, -20));
         
         // Crear y agregar el suelo
         createFloor();
@@ -109,22 +115,35 @@ public class Main extends SimpleApplication {
     }
 
     private void createTower(Vector3f position) {
-        // Carga el modelo de la torre y ajusta su escala
-        Box towerMesh = new Box(2, 5, 1);
+        // Crear la geometría de la torre
+        Box towerMesh = new Box(2, 5, 2);
         Geometry tower = new Geometry("Tower", towerMesh);
-         // Factor de escala para ajustar el tamaño de las torres
+
+        // Crear el material con la textura de torre
         Material towerMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         Texture texture = assetManager.loadTexture("Textures/torre1.png"); // Ruta a tu imagen de textura
-        towerMaterial.setTexture("ColorMap", texture);// Color de la torre// Color de la torre // Ajusta la escala según sea necesario
+        towerMaterial.setTexture("ColorMap", texture);
 
-        // Adjunta la torre al nodo de la escena
-         tower.setMaterial(towerMaterial);
+        // Habilitar la mezcla alfa para permitir la transparencia
+        towerMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+
+        // Establecer el bucket de transparencia para la geometría de la torre
+        tower.setQueueBucket(RenderQueue.Bucket.Transparent);
+
+        // Asignar el material a la geometría de la torre
+        tower.setMaterial(towerMaterial);
+
+        // Posicionar la torre en la escena
         tower.setLocalTranslation(position);
+
+        // Adjuntar la torre al nodo raíz y a la escena
         rootNode.attachChild(tower);
         scene.attachChild(tower);
 
-        stateManager.attach(new TowerControl(tower, player, this)); //towerMode antes era 'tower'
+        // Adjuntar el control de la torre
+        stateManager.attach(new TowerControl(tower, player, this));
     }
+
     
     //funcion para la creacion del suelo
     private void createFloor() {
